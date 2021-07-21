@@ -1,0 +1,466 @@
+openapi: 3.0.3
+info:
+  title: SharePoint OpenAPI
+  description: OpenAPI 3.0.3 Specification for the SharePoint APIs
+  version: 1.0.0
+  contact:
+    name: Mitchell Quinn
+    email: mdq2@live.com
+
+servers:
+  - url: https://{siteUrl}/_api/web
+    description: The end point for site access.
+    variables:
+      site_url:
+        default: SP_SITE_URL
+      
+  - url: https://{siteUrl/_api/site
+    description: The end point for specific site collection access.
+    variables:
+      siteUrl:
+        default: SP_SITE_URL
+    
+paths:
+  # Authorization
+  /tokens/OAuth/2:
+    post:
+      summary: Generate an OAuth2 Bearer Token
+      servers:
+        - url: https://accounts.accesscontrol.windows.net/{realm}
+          description: The default microsoft authorization server.
+          variables:
+            realm:
+              default: SP_SITE_REALM
+      tags:
+        - Authorization
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthorizationRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthorizationSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+  
+  # Folders
+  /GetFolderByServerRelativePath(decodedurl='{folderPath}'):
+    get:
+      summary: Get a folder by path.
+      parameters:
+        - in: path
+          name: folderPath
+          schema:
+            type: string
+          required: true
+          description: The server relative path to folder to get folders (urlencoded).
+          example: Shared%20Documents
+      tags:
+        - Folders          
+      responses:
+        '200':
+          $ref: '#/components/responses/GetFolderByPathResponse'
+  
+  /GetFolderByServerRelativePath(decodedurl='{folderPath}')/Folders:
+    get:
+      summary: Get a folders by path.
+      parameters:
+        - in: path
+          name: folderPath
+          schema:
+            type: string
+          required: true
+          description: The server relative path to folder to get folders.
+          example: Shared%20Documents
+      tags:
+        - Folders
+      responses:
+        '200':
+          $ref: '#/components/responses/GetFoldersByPathResponse'
+  
+  # Files
+  /GetFileByServerRelativeUrl(decodedurl='{filePath}')/$value:
+    get:
+      summary: Get a file by path.
+      parameters:
+        - in: path
+          name: filePath
+          schema:
+            type: string
+          required: true
+          description: The server relative path to file. This value is given in the GetFiles request.
+          example: /sites/FileSharingSite/Shared Documents/fileName.docx'
+      tags:
+        - Files
+      responses:
+        '200':
+          description: Successful download file
+          content:
+            "*/*":
+             schema: 
+               type: string
+               format: binary
+  
+  
+  /GetFolderByServerRelativePath(decodedurl='{folderPath}')/Files:
+    get:
+      summary: Get a files by path.
+      parameters:
+        - in: path
+          name: folderPath
+          schema:
+            type: string
+          required: true
+          description: The server relative path to folder to get files.
+          example: Shared%20Documents
+      tags:
+        - Files
+      responses:
+        '200':
+          $ref: '#/components/responses/GetFilesByPathResponse'
+
+
+components:
+  responses:
+    AuthorizationSuccessResponse:
+      description: Successful authorization response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthorizationSuccess'
+            
+    GetFolderByPathResponse:
+      description: Successfully retrieve folders by path response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SPFolder'             
+  
+    GetFoldersByPathResponse:
+      description: Successfully retreive folders by path response.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              value:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SPFolder'
+                  
+    GetFileByPathResponse:
+      description: Successfully retrieve a file by path response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SPFile'
+            
+    GetFilesByPathResponse:
+      description: Successfully retreive files by path response.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              value:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SPFile'            
+                  
+                 
+                  
+                
+    # OK:
+    #   description: The specified resource was not found
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'
+            
+    BadRequestResponse:
+      description: Indicates that the server cannot or will not process the request due to something that is perceived to be a client error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestError'
+            
+    # Unauthorized:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'
+            
+    # Forbidden:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'
+    
+    # NotFound:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'            
+            
+    # MethodNotAllowed:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'
+            
+    # NotAcceptable:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'
+            
+    # Conflict:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'
+            
+    # UnsupportedMediaType:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'
+            
+    # ServerError:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'       
+
+    # ProviderServerError:
+    #   description: Need to add
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Error'              
+    
+  schemas:
+    AuthorizationRequest:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          enum: 
+            - client_credentials
+        client_id:
+          type: string
+          description: The client_id from your SharePoint Site APP and the realm from your SharePoint Site. Should be in format of client_id@realm
+        client_secret:
+          type: string
+          description: The client_secret from your SharePoint Site App.
+        resource:
+          type: string
+          description: Should be in format of principal/targetHost@realm
+      required:
+        - grant_type
+        - client_id
+        - client_secret
+        - resource
+        
+    AuthorizationSuccess:
+      type: object
+      properties:
+        token_type:
+          type: string
+          enum:
+            - Bearer
+        expires_in:
+          type: string
+          example: 86399
+        not_before:
+          type: string
+          example: 1626789375
+        expires_on:
+          type: string
+          example: 1626789375
+        resource:
+          type: string
+          example: 00000003-0000-0ff1-ce00-000000000000/tenant.sharepoint.com@bb48c.. ..88dcf
+          description: Format is principal/tenant@realm
+        access_token:
+          type: string
+          example: eyJ0eXAiO.. ..i10NX05w
+          description: Standard OAuth2 Access Token
+      required:
+        - token_type
+        - expires_in
+        - not_before
+        - expires_on
+        - resource
+        - access_token
+        
+    SPFile:
+      type: object
+      properties:
+        CheckInComment:
+          type: string
+        CheckOutType:
+          type: integer
+        ContentTag:
+          type: string
+        CustomizedPageStatus:
+          type: integer
+        ETag:
+          type: string
+          example: "\"{867E9A8F-EC3B-4996-A535-0774BA9A204E},4\""
+        Exists:
+          type: boolean
+        IrmEnabled:
+          type: boolean
+        Length:
+          type: string
+          example: "17398"
+        Level:
+          type: integer
+        LinkingUri:
+          type: string
+        LinkingUrl:
+          type: string
+        MajorVersion:
+          type: integer
+        MinorVersion:
+          type: integer
+        Name:
+          type: string
+          example: FileName
+        ServerRelativeUrl:
+          type: string
+          example: /folder/file.txt
+        TimeCreated:
+          type: string
+          format: datetime
+          example: "2021-07-08T19:57:33Z"
+        TimeLastModified:
+          type: string
+          format: datetime
+          example: "2021-07-08T19:57:33Z"
+        Title:
+          type: string
+        UIVersion:
+          type: integer
+        IUVersionLabel:
+          type: string
+          example: "1.0"
+        UniqueId:
+          type: string
+          format: uuid
+          example: 3b596822-60f6-4c0a-813b-ad3ec3060ed0
+      required:
+        - CheckInComment
+        - CheckOutType
+        - ContentTag
+        - CustomizedPageStatus
+        - ETag
+        - Exists
+        - IrmEnabled
+        - Length
+        - Level
+        - LinkingUri
+        - LinkingUrl
+        - MajorVersion
+        - MinorVersion
+        - Name
+        - ServerRelativeUrl
+        - TimeCreated
+        - TimeLastModified
+        - Title
+        - UIVersion
+        - IUVersionLabel
+        - UniqueId
+          
+    SPFolder:
+      type: object
+      properties:
+        Exists:
+          type: boolean
+        IsWOPIEnabled: 
+          type: boolean
+        ItemCount: 
+          type: integer
+        Name: 
+          type: string
+          example: Folder Name
+        ProgID: 
+          type: string
+          format: uuid
+          nullable: true
+        ServerRelativeUrl:
+          type: string
+          example: path/to/folder
+        TimeCreated:
+          type: string
+          format: datatime
+          example: "2021-07-08T19:57:33Z"
+        TimeLastModified:
+          type: string
+          format: datatime
+          example: "2021-07-08T19:57:40Z"
+        UniqueId: 
+          type: string
+          format: uuid
+          example: 3b596822-60f6-4c0a-813b-ad3ec3060ed0
+        WelcomePage:
+          type: string
+          example: ""
+      required:
+        - Exists
+        - IsWOPIEnabled
+        - ItemCount
+        - Name
+        - ProgID
+        - ServerRelativeUrl
+        - TimeCreated
+        - TimeLastModified
+        - UniqueId
+        - WelcomePage
+        
+  
+    BadRequestError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: unsupported_grant_type
+        error_description:
+          type: string
+          description: A short description of the details for the error.
+        error_codes:
+          type: array
+          items:
+            type: integer
+            example: 70003
+        timestamp:
+          type: string
+          format: datetime
+          example: 2021-07-20 14:48:05Z
+        trace_id:
+          type: string
+          format: uuid
+          example: 5491e14c-785a-4a7b-a7c9-e7fa12c02202
+        correlation_id:
+          type: string
+          format: uuid
+          example: 5491e14c-785a-4a7b-a7c9-e7fa12c02202
+      required:
+        - error
+        - error_description
+        - error_codes
+        - timestamp
+        - trace_id
+        - correlation_id
+        
